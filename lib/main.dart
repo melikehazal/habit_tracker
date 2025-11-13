@@ -3,9 +3,11 @@ import 'package:habit_tracker/pages/home_page.dart';
 import 'package:habit_tracker/providers/habit_provider.dart';
 import 'package:habit_tracker/services/habit_database.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('tr_TR', null);
   await HabitDatabase.initialize();
 
   runApp(

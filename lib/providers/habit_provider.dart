@@ -19,12 +19,7 @@ class HabitProvider extends ChangeNotifier {
       createdAt: createdAt,
       completedDays: [],
     );
-    final dir = await getApplicationDocumentsDirectory();
-
-    final isar = await Isar.open([HabitSchema], directory: dir.path);
-    await isar.writeTxn(() => isar.habits.put(newHabit));
-    await isar.close();
-
+    await HabitDatabase.addHabit(newHabit);
     await loadHabits();
   }
 
@@ -36,24 +31,51 @@ class HabitProvider extends ChangeNotifier {
   //günlük tamamlanma durumunu değiştir
   Future<void> toggleHabitCompletion(Habit habit) async {
     final today = DateTime.now();
+    print("🔄 ${habit.habitName} toggle ediliyor - Bugün: $today");
+
     final isCompletedToday = habit.completedDays.any(
       (date) =>
           date.year == today.year &&
           date.month == today.month &&
           date.day == today.day,
-    ); //Tamamlanmış günler listesinde bugünün tarihi var mı?
+    );
 
     if (isCompletedToday) {
-      //eğer bugun zaten tamamlanmışsa bugunun tamamlanmasını kaldır
       habit.completedDays.removeWhere(
         (date) =>
             date.year == today.year &&
             date.month == today.month &&
             date.day == today.day,
       );
+      print("🟡 ${habit.habitName} bugünkü tamamlanma kaldırıldı");
     } else {
-      //bugunu tamamlanmış olarak ekle
       habit.completedDays.add(today);
+      print("🟢 ${habit.habitName} bugünkü tamamlanma eklendi");
+    }
+
+    await HabitDatabase.updateHabit(habit);
+    print("✅ ${habit.habitName} güncellendi: ${habit.completedDays}");
+
+    await loadHabits(); // UI'ı yenile
+  }
+
+  Future<void> toggleHabitCompletionForDate(Habit habit, DateTime day) async {
+    final isCompleted = habit.completedDays.any(
+      (date) =>
+          date.year == day.year &&
+          date.month == day.month &&
+          date.day == day.day,
+    );
+
+    if (isCompleted) {
+      habit.completedDays.removeWhere(
+        (date) =>
+            date.year == day.year &&
+            date.month == day.month &&
+            date.day == day.day,
+      );
+    } else {
+      habit.completedDays.add(day);
     }
 
     await HabitDatabase.updateHabit(habit);

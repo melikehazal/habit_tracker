@@ -29,9 +29,14 @@ class HabitDatabase {
 
   //Güncelle
   static Future<void> updateHabit(Habit habit) async {
-    await _isar.writeTxn(() async {
-      await _isar.habits.put(habit);
-    });
+    try {
+      await _isar.writeTxn(() async {
+        await _isar.habits.put(habit);
+      });
+      print("💾 Güncelleme başarılı: ${habit.habitName}");
+    } catch (e) {
+      print("❌ Güncelleme hatası: $e");
+    }
   }
 
   //Sil
